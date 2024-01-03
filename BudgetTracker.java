@@ -1,11 +1,15 @@
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
-public class BudgetTrackerApp {
+public class BudgetTracker {
 
-    private static ArrayList<Expence> expenses = new ArrayList<>();
+    private static ArrayList<Expense> expenses = new ArrayList<>();
     private static HashMap<String, Double> categoryLimits = new HashMap<>();
 
     public static void main(String[] args) {
@@ -62,6 +66,7 @@ public class BudgetTrackerApp {
 
             System.out.print("Enter expense amount: ");
             double amount = scanner.nextDouble();
+            scanner.nextLine();
 
             System.out.print("Enter expense date (YYYY-MM-DD): ");
             String dateStr = scanner.nextLine(); // Consume newline from previous input
@@ -113,7 +118,7 @@ public class BudgetTrackerApp {
 
         System.out.println("\nBalance:");
         System.out.println("--------");
-        System.out.println("Total Income:   $" + totalIncome);
+        System.out.println("Total Income:  $" + totalIncome);
         System.out.println("Total Expenses: $" + totalExpenses);
         System.out.println("Current Balance: $" + balance);
 
@@ -137,49 +142,79 @@ public class BudgetTrackerApp {
 
     }
 
+    private static Date parseDate(String dateStr) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return formatter.parse(dateStr);
+    }
+
     private static void generateReport() {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Enter start date (YYYY-MM-DD): ");
         String startDateStr = scanner.nextLine();
-        Date startDate = parseDate(startDateStr); // Use your date parsing method
 
-        System.out.print("Enter end date (YYYY-MM-DD): ");
-        String endDateStr = scanner.nextLine();
-        Date endDate = parseDate(endDateStr);
+        try {
+            Date startDate = parseDate(startDateStr);
 
-        System.out.print("Enter category filter (leave blank for all categories): ");
-        String categoryFilter = scanner.nextLine();
+            System.out.print("Enter end date (YYYY-MM-DD): ");
+            String endDateStr = scanner.nextLine();
+            Date endDate = parseDate(endDateStr);
+            System.out.print("Enter category filter (leave blank for all categories): ");
+            String categoryFilter = scanner.nextLine();
 
-        System.out.println("\nReport:");
-        System.out.println("-------");
-        System.out.println("Period: " + startDate + " - " + endDate);
+            System.out.println("\nReport:");
+            System.out.println("-------");
+            System.out.println("Period: " + startDate + " - " + endDate);
 
-        // Calculate total income, expenses, and balance for the filtered period
-        double totalIncome = 0; // Assuming income is not yet implemented
-        double totalExpenses = 0;
+            // Calculate total income, expenses, and balance for the filtered period
+            double totalIncome = 0; // Assuming income is not yet implemented
+            double totalExpenses = 0;
 
-        for (Expense expense : expenses) {
-            if (expense.getDate().compareTo(startDate) >= 0 && expense.getDate().compareTo(endDate) <= 0 &&
-                    (categoryFilter.isEmpty() || expense.getCategory().equalsIgnoreCase(categoryFilter))) {
-                totalExpenses += expense.getAmount();
+            for (Expense expense : expenses) {
+                if (expense.getDate().compareTo(startDate) >= 0 && expense.getDate().compareTo(endDate) <= 0 &&
+                        (categoryFilter.isEmpty() || expense.getCategory().equalsIgnoreCase(categoryFilter))) {
+                    totalExpenses += expense.getAmount();
+                }
             }
+
+            double balance = totalIncome - totalExpenses;
+
+            // Display summary
+            System.out.println("Total Income:  $" + totalIncome);
+            System.out.println("Total Expenses: $" + totalExpenses);
+            System.out.println("Balance:    $" + balance);
+
+            // Display expense breakdown by category (if applicable)
+            if (!expenses.isEmpty()) {
+                System.out.println("\nExpense Breakdown:");
+
+                HashMap<String, Double> categoryTotals = new HashMap<>();
+
+                // Group expenses by category and calculate totals
+                for (Expense expense : expenses) {
+                    String category = expense.getCategory();
+                    double amount = expense.getAmount();
+
+                    categoryTotals.putIfAbsent(category, 0.0); // Add category if not already present
+                    categoryTotals.put(category, categoryTotals.get(category) + amount); // Increment total for the
+                                                                                         // category
+                }
+
+                // Display category totals
+                for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+                    String category = entry.getKey();
+                    double total = entry.getValue();
+                    System.out.printf("%-15s $%.2f\n", category, total);
+                }
+            }
+
+        } catch (ParseException e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+            // Optionally, prompt the user to enter the date again or take other corrective
+            // actions.
         }
-
-        double balance = totalIncome - totalExpenses;
-
-        // Display summary
-        System.out.println("Total Income:   $" + totalIncome);
-        System.out.println("Total Expenses: $" + totalExpenses);
-        System.out.println("Balance:        $" + balance);
-
-        // Display expense breakdown by category (if applicable)
-        if (!expenses.isEmpty()) {
-            System.out.println("\nExpense Breakdown:");
-            // ... (implement logic to group expenses by category and display their totals)
-        }
-
     }
+
 }
 
 class Expense {

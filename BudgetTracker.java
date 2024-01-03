@@ -11,6 +11,7 @@ public class BudgetTracker {
 
     private static ArrayList<Expense> expenses = new ArrayList<>();
     private static HashMap<String, Double> categoryLimits = new HashMap<>();
+    private static ArrayList<Income> incomeList = new ArrayList<>();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -25,18 +26,21 @@ public class BudgetTracker {
                     addExpense();
                     break;
                 case 2:
-                    viewRecentTransactions();
+                    addIncome(); // Invoke addIncome() when choice is 2
                     break;
                 case 3:
-                    viewBalance();
+                    viewRecentTransactions();
                     break;
                 case 4:
-                    setCategoryLimit();
+                    viewBalance();
                     break;
                 case 5:
-                    generateReport();
+                    setCategoryLimit();
                     break;
                 case 6:
+                    generateReport();
+                    break;
+                case 7:
                     System.out.println("Exiting budget tracker...");
                     System.exit(0);
                 default:
@@ -48,11 +52,13 @@ public class BudgetTracker {
     private static void displayMenu() {
         System.out.println("\nBudget Tracker Menu:");
         System.out.println("1. Add Expense");
-        System.out.println("2. View Recent Transactions");
-        System.out.println("3. View Balance");
-        System.out.println("4. Set Category Limit");
-        System.out.println("5. Generate Report");
-        System.out.println("6. Exit");
+        System.out.println("2. Add Income");
+        System.out.println("3. View Recent Transactions");
+        System.out.println("4. View Balance");
+        System.out.println("5. Set Category Limit");
+        System.out.println("6. Generate Report");
+        System.out.println("7. Exit");
+
         System.out.print("Enter your choice: ");
     }
 
@@ -84,6 +90,33 @@ public class BudgetTracker {
         }
     }
 
+    private static void addIncome() {
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            System.out.print("Enter income source: ");
+            String source = scanner.nextLine();
+
+            System.out.print("Enter income amount: ");
+            double amount = scanner.nextDouble();
+            scanner.nextLine(); // Consume newline character
+
+            System.out.print("Enter income date (YYYY-MM-DD): ");
+            String dateStr = scanner.nextLine();
+            Date date = parseDate(dateStr);
+
+            System.out.print("Enter income description (optional): ");
+            String description = scanner.nextLine();
+
+            Income income = new Income(source, amount, date, description);
+            incomeList.add(income); // Store the income object in incomeList
+
+            System.out.println("Income added successfully!");
+        } catch (ParseException e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+        }
+    }
+
     private static void viewRecentTransactions() {
 
         System.out.println("\nRecent Transactions:");
@@ -106,12 +139,17 @@ public class BudgetTracker {
     }
 
     private static void viewBalance() {
-
-        double totalIncome = 0; // Assuming income is not yet implemented
+        double totalIncome = 0;
         double totalExpenses = 0;
 
+        // Calculate total expenses
         for (Expense expense : expenses) {
             totalExpenses += expense.getAmount();
+        }
+
+        // Calculate total income
+        for (Income income : incomeList) {
+            totalIncome += income.getAmount();
         }
 
         double balance = totalIncome - totalExpenses;
@@ -121,7 +159,6 @@ public class BudgetTracker {
         System.out.println("Total Income:  $" + totalIncome);
         System.out.println("Total Expenses: $" + totalExpenses);
         System.out.println("Current Balance: $" + balance);
-
     }
 
     private static void setCategoryLimit() {
@@ -215,6 +252,55 @@ public class BudgetTracker {
         }
     }
 
+}
+
+class Income {
+    private String source;
+    private double amount;
+    private Date date;
+    private String description;
+
+    // Constructor
+    public Income(String source, double amount, Date date, String description) {
+        this.source = source;
+        this.amount = amount;
+        this.date = date;
+        this.description = description;
+    }
+
+    // Getters
+    public String getSource() {
+        return source;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    // Setters
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }
 
 class Expense {
